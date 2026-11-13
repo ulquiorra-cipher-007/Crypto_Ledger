@@ -1,0 +1,1643 @@
+================================================================================
+ CRYPTOLEDGER — COMPLETE UNIFIED PLATFORM ARCHITECTURE & ENGINEERING PIPELINE
+ Exhaustive Technical Reference Document
+ Version 3.0-Production | September 2026
+================================================================================
+
+This document provides an absolutely exhaustive, zero-omission technical
+description of the entire CryptoLedger platform: every subsystem, every file,
+every function, every data structure, every protocol, every data flow path,
+every security mechanism, and every trivial implementation detail. Nothing is
+skipped.
+
+================================================================================
+TABLE OF CONTENTS
+================================================================================
+
+  PART A — PLATFORM OVERVIEW & DIRECTORY TOPOLOGY
+  PART B — ENTRY STATION (entry/)
+  PART C — CYBERCHAIN (CyberChain/)
+  PART D — PEAKLEDGER (peakledger/)
+  PART E — END-TO-END SESSION LIFECYCLE
+  PART F — CROSS-SYSTEM DATA FLOW
+  PART G — SECURITY ARCHITECTURE
+  PART H — TECHNOLOGY STACK INVENTORY
+
+
+################################################################################
+################################################################################
+
+                    PART A — PLATFORM OVERVIEW & DIRECTORY TOPOLOGY
+
+################################################################################
+################################################################################
+
+The CryptoLedger platform is a unified forensic evidence custody system that
+integrates three independent, purpose-built subsystems into a seamless
+pipeline:
+
+  1. Entry Station   — FIDO2 credential enrollment
+  2. CyberChain      — Blockchain-anchored session management
+  3. PeakLedger      — Cryptographic video forensic engine
+
+The platform solves two fundamental problems in digital forensics:
+
+  Problem 1: Who touched the evidence?
+    Solved by CyberChain's FIDO2 biometric authentication and Ethereum smart
+    contract session anchoring. Every examiner session is immutably recorded
+    on-chain with entry time, exit time, examiner identity, and a SHA-256 hash
+    of all modifications.
+
+  Problem 2: Has the video evidence been tampered with?
+    Solved by PeakLedger's Two-Layer Decoupled Forensic Architecture. Layer 1
+    hashes every compressed packet into a Merkle Tree for bitwise verification.
+    Layer 2 extracts semantic attributes (faces, plates, signals, clothing) for
+    deep forensic auditing.
+
+
+DIRECTORY TOPOLOGY
+==================
+
+crypto_ledger/                          (Project Root)
+├── entry/                              (Entry Station subsystem)
+│   ├── entry_station.py                (Main GUI + CLI + embedded HTTP server)
+│   ├── cli.py                          (CLI entry point, delegates to entry_station.run_cli)
+│   ├── run.bat                         (Windows batch launcher)
+│   ├── run.sh                          (Linux/Mac shell launcher)
+│   ├── entry.bat                       (Alternative Windows launcher)
+│   ├── README.md                       (Entry Station documentation)
+│   └── __pycache__/                    (Python bytecode cache)
+│
+├── CyberChain/                         (CyberChain blockchain custody layer)
+│   ├── app.py                          (Primary user workstation GUI + CLI)
+│   ├── admin_app.py                    (Administrator audit console GUI + CLI)
+│   ├── auth_server.py                  (FIDO2/WebAuthn HTTP authentication server)
+│   ├── blockchain.py                   (Anvil EVM node lifecycle manager)
+│   ├── database.py                     (SQLite database manager)
+│   ├── README.md                       (CyberChain documentation)
+│   ├── run_app.bat / .ps1 / .sh        (App launcher scripts)
+│   ├── run_admin.bat / .ps1 / .sh      (Admin launcher scripts)
+│   ├── contracts/                      (Solidity smart contracts)
+│   │   ├── SessionAuditLedger.sol      (Solidity source code)
+│   │   └── SessionAuditLedger.json     (Compiled ABI + bytecode artifact)
+│   ├── storage/                        (Runtime data directory)
+│   │   └── cyberchain.db              (SQLite database file)
+│   └── __pycache__/                    (Python bytecode cache)
+│
+├── peakledger/                         (PeakLedger forensic engine)
+│   ├── include/                        (C++ header files)
+│   │   ├── common.hpp                  (Shared types, enums, grid geometry)
+│   │   ├── crypto_merkle.hpp           (SHA-256 Merkle Tree)
+│   │   ├── cuda_preprocess.cuh         (CUDA preprocessing kernels)
+│   │   ├── cuda_spatial_hash.cuh       (CUDA spatial luminance reduction)
+│   │   ├── forensic_attribute_engine.hpp (Layer 2 attribute extraction)
+│   │   ├── ledger_db.hpp               (SQLite dual-blockchain persistence)
+│   │   ├── motion_tracker.hpp          (Multi-entity centroid tracker)
+│   │   ├── nvdec_decoder.hpp           (NVDEC hardware video decoder)
+│   │   ├── ring_buffer.hpp             (Lock-free shared memory IPC)
+│   │   ├── tamper_extractor.hpp        (Motion residual & evidence JPEG)
+│   │   ├── tensorrt_infer.hpp          (TensorRT inference engine)
+│   │   └── trt_inference.hpp           (Double-buffered inference slots)
+│   ├── src/                            (C++ source files)
+│   │   ├── main.cpp                    (Application entry point)
+│   │   ├── crypto_merkle.cpp           (Merkle Tree implementation)
+│   │   ├── cuda_preprocess.cu          (CUDA preprocessing kernel impl)
+│   │   ├── cuda_spatial_hash.cu        (CUDA spatial hash kernel impl)
+│   │   ├── forensic_attribute_engine.cpp (Layer 2 engine impl)
+│   │   ├── ledger_db.cpp               (SQLite DB implementation)
+│   │   ├── motion_tracker.cpp          (Tracker implementation)
+│   │   ├── nvdec_decoder.cpp           (NVDEC decoder implementation)
+│   │   ├── tamper_extractor.cpp        (Tamper extraction implementation)
+│   │   ├── tensorrt_infer.cpp          (TensorRT engine implementation)
+│   │   └── trt_inference.cpp           (Inference slot implementation)
+│   ├── tests/                          (C++ test suites)
+│   │   ├── test_crypto_merkle.cpp
+│   │   ├── test_cuda_hash.cu
+│   │   ├── test_cuda_preprocess.cu
+│   │   ├── test_forensic_attribute_engine.cpp
+│   │   ├── test_ledger_db.cpp
+│   │   ├── test_ledger_ipc.cpp
+│   │   ├── test_motion_tracker.cpp
+│   │   ├── test_ring_buffer.cpp
+│   │   ├── test_trt_inference.cpp
+│   │   ├── debug_hasher.cpp
+│   │   ├── debug_kernel.cu
+│   │   └── debug_test.cu
+│   ├── ui/                             (Python PyQt6 forensic workstation UI)
+│   │   ├── main.py                     (Main forensic workstation window)
+│   │   └── forensic_tags.py            (Forensic tag management)
+│   ├── scripts/                        (Build & utility scripts)
+│   │   ├── generate_docx_manual.py     (Architecture manual generator)
+│   │   ├── render_architecture_flowchart.py (Flowchart renderer)
+│   │   ├── bundle_appdir.sh            (AppImage bundler)
+│   │   ├── clean_ledger.sh             (Database cleanup)
+│   │   ├── run_all_tests.sh            (Test runner)
+│   │   └── wsl2_setup_or_cleanup.sh    (WSL2 environment setup)
+│   ├── evidence/                       (Runtime forensic output directory)
+│   │   ├── ledger.db                   (PeakLedger SQLite forensic ledger)
+│   │   ├── Forensic_Report.html        (Courtroom-admissible HTML report)
+│   │   ├── forensic_tags.bin           (Serialized forensic tags)
+│   │   ├── tamper_audit_report.json    (Machine-readable audit results)
+│   │   ├── sample_pristine.mp4         (Test baseline video)
+│   │   ├── sample_suspect.mp4          (Test suspect video)
+│   │   ├── e2e_test_ledger.db          (End-to-end test database)
+│   │   ├── report1.html                (Auxiliary report)
+│   │   └── peakledger_architecture_flowchart.png
+│   ├── models/                         (Neural network model files)
+│   │   └── model.engine                (Serialized TensorRT engine)
+│   ├── build/                          (CMake build output)
+│   ├── bin/                            (Compiled binaries)
+│   │   ├── forensic_backend            (Main PeakLedger binary)
+│   │   ├── PeakLedger                  (Symlink/copy of backend)
+│   │   ├── test_crypto_merkle
+│   │   ├── test_cuda_hash
+│   │   ├── test_cuda_preprocess
+│   │   ├── test_forensic_attribute_engine
+│   │   ├── test_ledger_db
+│   │   ├── test_motion_tracker
+│   │   ├── test_ring_buffer
+│   │   └── test_trt_inference
+│   ├── AppDir/                         (Linux AppImage directory)
+│   │   ├── AppRun                      (AppImage entry point)
+│   │   ├── peakledger.desktop          (Desktop file)
+│   │   ├── peakledger.png              (Icon)
+│   │   ├── .DirIcon                    (AppImage icon symlink)
+│   │   ├── models/model.engine
+│   │   ├── ui/main.py
+│   │   ├── ui/forensic_tags.py
+│   │   └── usr/bin/forensic_backend
+│   ├── CMakeLists.txt                  (CMake build configuration)
+│   ├── Makefile                        (GNU Make build file)
+│   ├── build_windows.bat               (Windows MSVC build script)
+│   ├── run_ui_windows.bat              (Windows UI launcher)
+│   ├── run_ui_windows.ps1              (PowerShell UI launcher)
+│   ├── fresh_run.sh                    (Clean build + run script)
+│   ├── forensic_engine.py              (Python forensic engine wrapper)
+│   ├── yolo11n.onnx                    (YOLO11 nano ONNX model)
+│   ├── PeakLedger-x86_64.AppImage      (Linux AppImage binary)
+│   ├── README.md                       (PeakLedger documentation)
+│   ├── README_WINDOWS.txt              (Windows-specific notes)
+│   ├── AGENTS.md                       (Agent instructions)
+│   ├── GEMINI.md                       (Gemini model instructions)
+│   └── robots.txt
+│
+├── PeakLedger_Complete_Architecture_and_Engineering_Manual.docx
+├── CryptoLedger_SIH2026.pptx          (Presentation)
+├── generate_updated_manual.py          (Manual update script)
+├── apply_manual_updates.py
+├── patch_manual.py
+├── test_patch.py
+├── pptx_dump.txt
+├── report7.html
+└── error1-5.png                        (Debug screenshots)
+
+
+################################################################################
+################################################################################
+
+                    PART B — ENTRY STATION (entry/)
+
+################################################################################
+################################################################################
+
+The Entry Station is the very first touchpoint in the CryptoLedger pipeline. Its
+sole purpose is to pre-enroll forensic examiners and administrators into the
+system by capturing their real Name and a genuine FIDO2 biometric passkey from
+their smartphone via Bluetooth QR code.
+
+FILE: entry/entry_station.py (664 lines, 27,532 bytes)
+=============================================
+
+HEADER & MODULE DOCSTRING:
+  "CYBERCHAIN - DEDICATED PASSKEY & IDENTITY INGESTION STATION"
+  - ONLY Name (Username) is compulsory. Email and Password columns are removed.
+  - Zero placeholder users: the database starts 100% clean.
+  - Enrolls genuine FIDO2 passkeys via smartphone Bluetooth QR scan.
+  - Strictly validates genuine passkeys: never falsely registers upon cancel.
+
+IMPORTS:
+  os, sys, time, uuid, socket, hashlib, threading, json, urllib.parse, io,
+  webbrowser, pathlib.Path, http.server
+
+CONSTANTS & PATHS:
+  ENTRY_DIR      = Path(__file__).resolve().parent
+  PROJECT_ROOT   = ENTRY_DIR.parent
+  CYBERCHAIN_DIR = PROJECT_ROOT / "CyberChain"
+  STORAGE_DIR    = CYBERCHAIN_DIR / "storage"
+  DB_PATH        = STORAGE_DIR / "cyberchain.db"
+
+  sys.path manipulation: Adds CYBERCHAIN_DIR and ENTRY_DIR to sys.path so that
+  `import database` resolves to CyberChain/database.py.
+
+GLOBAL STATE:
+  active_qr_sessions: dict[str, dict] = {}
+    In-memory dictionary tracking QR passkey enrollment sessions.
+    Key: 12-character hex session_id (uuid4.hex[:12])
+    Value: {"session_id": str, "username": str, "status": "PENDING"|"VERIFIED",
+            "credential_id": str|None, "client_device": str|None}
+  qr_server_port: int = 8089
+    Port for the embedded enrollment HTTP server.
+
+EMBEDDED HTTP SERVER:
+  class EnrollmentHttpHandler(http.server.BaseHTTPRequestHandler):
+
+    log_message(): Overridden to suppress console clutter (does nothing).
+
+    send_cors(): Sends Access-Control-Allow-Origin: *, Allow-Methods: GET/POST/
+    OPTIONS, Allow-Headers: Content-Type.
+
+    do_OPTIONS(): Returns 200 with CORS headers (preflight support).
+
+    do_GET():
+      Parses URL path and query parameters.
+      Routes:
+        /enroll or / :
+          Retrieves session from active_qr_sessions by query param "session".
+          Falls back to query param "user" for username.
+          Renders full HTML enrollment page via get_enrollment_html().
+          Returns 200 with Content-Type: text/html; charset=utf-8.
+
+        /poll :
+          Returns JSON of the session object for the given session_id.
+          If session not found, returns {"status": "NOT_FOUND"}.
+          Content-Type: application/json.
+
+        All other paths: 404.
+
+    do_POST():
+      Routes:
+        /submit or /api/verify :
+          Reads Content-Length header, reads body, parses as JSON.
+          Extracts session_id and credential_id from request body.
+
+          VALIDATION (critical security):
+            - If session_id is missing, empty, or not in active_qr_sessions: 400
+            - If credential_id is missing, empty, or whitespace-only: 400
+            This prevents false verification when the user cancels the WebAuthn
+            prompt (which sends no credential_id).
+
+          On valid credential:
+            Sets active_qr_sessions[session_id]["status"] = "VERIFIED"
+            Sets active_qr_sessions[session_id]["credential_id"] = cred_id
+            Sets active_qr_sessions[session_id]["client_device"] = client_dev
+            Returns 200 with {"success": true, "credential_id": cred_id}
+
+          On exception: 500.
+        All other paths: 404.
+
+  start_embedded_qr_server():
+    Attempts to bind the server to ports in order: 8089, 8090, 8091, 8888, 0.
+    Port 0 lets the OS assign any available port.
+    Starts the server in a daemon thread (threading.Thread, daemon=True).
+    Updates global qr_server_port with the actual bound port.
+    Returns the port number.
+
+ENROLLMENT HTML PAGE:
+  get_enrollment_html(session_id: str, username: str) -> str:
+    Returns a complete HTML document (single string, ~250 lines) with:
+
+    CSS STYLING:
+      - Background: #06090e (near-black)
+      - Card: #0c111a with 1px solid #1f2a3c border, 18px border-radius
+      - Badge: rgba(0, 255, 204, 0.1) background, #00ffcc text
+      - Tip box: rgba(234, 179, 8, 0.1) background, #fde047 text
+      - Main button: #00ffcc background, #06090e text, 15px font, 800 weight
+      - Success view: rgba(16, 185, 129, 0.2) checkmark background
+
+    HTML STRUCTURE:
+      - Badge: "◈ FIDO2 Passkey Ingestion"
+      - Title: "Enroll Passkey for {username}" (username in #00ffcc)
+      - Subtitle: "Only Name is required..."
+      - Tip box: Instructions about clicking "More choices" on Windows
+      - Button: "Display Phone Bluetooth QR Code"
+      - Status text: "Click button to launch passkey prompt..."
+      - Hidden success view with checkmark
+
+    JAVASCRIPT:
+      triggerPasskeyEnrollment():
+        - Checks window.PublicKeyCredential availability
+        - Generates 32-byte random challenge via crypto.getRandomValues
+        - Calls navigator.credentials.create() with:
+            rp: { name: "CyberChain Entry Station", id: window.location.hostname }
+            user: { id: TextEncoder.encode(username), name: username, displayName: username }
+            pubKeyCredParams: [ES256 (alg: -7), RS256 (alg: -257)]
+            timeout: 120000 (2 minutes)
+            hints: ["hybrid"]  <-- THIS IS THE KEY PARAMETER that triggers
+                                   Phone/Tablet Bluetooth QR code display
+            authenticatorSelection: {
+              userVerification: "required",  <-- Forces biometric (fingerprint/face)
+              residentKey: "preferred"
+            }
+        - On success: POSTs credential.id to /submit with session_id
+        - On success response: Hides enroll-view, shows success-view, closes
+          tab after 800ms via window.close()
+        - On error (NotAllowedError = user cancelled): Shows error message,
+          does NOT verify. This is critical: cancellation must never register.
+
+CREDENTIAL DATABASE COMMIT:
+  enroll_credential_into_db(username, role="user", fingerprint_credential_id="",
+                            fingerprint_device="Smartphone Biometric Passkey"):
+    - Validates username is non-empty (raises ValueError)
+    - Validates fingerprint_credential_id is non-empty (raises ValueError)
+    - Normalizes role: "admin" if input is "admin" (case-insensitive), else "user"
+    - Delegates to database.register_user() from CyberChain/database.py
+    - Returns dict: {status, user_id, username, role, fingerprint_id,
+                     fingerprint_device, db_path}
+
+  list_all_db_users():
+    - Calls database.get_all_users()
+    - Maps each row to: {id, username, role, created_at, fingerprints_count}
+
+GUI IMPLEMENTATION (run_gui()):
+  Dependencies: PyQt6.QtWidgets, PyQt6.QtCore, PyQt6.QtGui
+
+  Starts the embedded QR server before creating the window.
+
+  class EntryStationWindow(QMainWindow):
+    Window title: "CyberChain - Passkey & Identity Ingestion Station"
+    Minimum size: 820x600
+
+    Instance state:
+      current_session_id: str (uuid4.hex[:12], regenerated per enrollment)
+      captured_credential_id: str|None
+      captured_device: str|None
+
+    THEME (setStyleSheet):
+      Background: #0b0f17
+      Text: #e2e8f0
+      Font: 'Segoe UI', system-ui, sans-serif
+      GroupBox: 1px solid #1e293b, border-radius 8px, accent #00ffcc
+      LineEdit: background #111827, border #334155, focus border #00ffcc
+      Buttons: background #2563eb, hover #1d4ed8
+      Success buttons: #059669, hover #047857
+      Secondary buttons: #334155, hover #475569
+      Table: background #0f172a, gridline #1e293b, header background #1e293b
+
+    LAYOUT:
+      Header:
+        - Badge: "◈ CYBERCHAIN CREDENTIAL INGESTION" (#00ffcc, 11px, bold, 1.5px spacing)
+        - Title: "User Passkey Ingestion Station" (22px, bold, white)
+        - Subtitle: "Only Name is compulsory. Passwordless FIDO2 architecture." (#64748b, 12px)
+
+      Content Row (horizontal split, 50/50):
+        Left Column:
+          GroupBox "1. User Identity & Role":
+            - Label: "Name:"
+            - QLineEdit: placeholder "Enter User Name"
+            - Label: "Role (Compulsory):"
+            - QComboBox with two items:
+                "user (Forensic Examiner)" -> data "user"
+                "admin (Administrator)" -> data "admin"
+              Styled: background #0f172a, border #334155
+
+          GroupBox "2. Phone Bluetooth Passkey":
+            - Status label: "⚪ No passkey captured yet" (#94a3b8, bold, 12px)
+            - Button: "📱 Launch Phone Bluetooth Passkey Prompt"
+
+          Submit button: "💾 Save User & Passkey to Database" (success-btn class)
+
+        Right Column:
+          GroupBox "Enrolled Users in cyberchain.db":
+            - QTableWidget: 4 columns [Name, Role, Passkeys, Created At]
+              Column 0 (Name): Stretch resize mode
+              Columns 1-3: ResizeToContents
+            - Button: "Refresh Table" (secondary-btn class)
+
+    POLL TIMER:
+      QTimer at 800ms intervals calling check_qr_session_status().
+      Checks active_qr_sessions[current_session_id]["status"] == "VERIFIED".
+      On verification:
+        - Captures credential_id and client_device from session
+        - Updates status label: "🟢 PASSKEY CAPTURED VIA PHONE!" (#10b981)
+
+    METHODS:
+      handle_launch_passkey():
+        - Validates username is non-empty (QMessageBox.warning if empty)
+        - Generates new session_id (uuid4.hex[:12])
+        - Resets captured_credential_id and captured_device to None
+        - Creates entry in active_qr_sessions with PENDING status
+        - Opens browser to http://localhost:{port}/enroll?session={id}&user={name}
+        - Updates status: "🟡 Browser opened... Choose 'Use a phone or tablet'..."
+
+      handle_enroll():
+        - Validates username non-empty
+        - Validates captured_credential_id is not None (prompts to scan first)
+        - Gets role from combo box currentData()
+        - Calls enroll_credential_into_db()
+        - Shows QMessageBox.information on success
+        - Clears input, resets credential, refreshes user table
+
+      refresh_users_table():
+        - Calls list_all_db_users()
+        - Populates table rows with username, role (ADMIN in #00ffcc, USER in #94a3b8),
+          passkey count ("X key(s)"), created_at (first 10 chars = date)
+
+CLI IMPLEMENTATION (run_cli()):
+  Starts embedded QR server.
+  Uses argparse with arguments:
+    -u/--username: Name/Username (only compulsory field)
+    -r/--role: choices=["user", "admin"], default="user"
+    -f/--fingerprint: Custom fingerprint/passkey ID
+    -l/--list: List all users in clean cyberchain.db
+    --cli: Force CLI mode
+    --gui: Force GUI mode
+
+  Modes:
+    --list: Prints formatted table of all users with Name, Role, Passkeys, Enrolled date.
+    -u + -f: Direct enrollment with provided username and fingerprint ID.
+    Interactive: Prompts for Name and Role, opens browser for QR passkey,
+    polls for 30 seconds at 1-second intervals.
+
+MAIN ENTRY POINT:
+  If command-line args present and --gui not in argv: run_cli()
+  Else: Try PyQt6 import, run_gui(). On ImportError: run_cli()
+
+
+FILE: entry/cli.py (25 lines, 575 bytes)
+========================================
+
+Simple CLI entry point that:
+  1. Resolves paths: ENTRY_DIR, PROJECT_ROOT, CYBERCHAIN_DIR
+  2. Adds CyberChain and entry to sys.path
+  3. Imports run_cli from entry_station
+  4. Calls run_cli() when executed as __main__
+
+
+################################################################################
+################################################################################
+
+                    PART C — CYBERCHAIN (CyberChain/)
+
+################################################################################
+################################################################################
+
+CyberChain is the blockchain custody layer that wraps PeakLedger with biometric
+authentication and immutable on-chain session logging.
+
+
+FILE: CyberChain/database.py (260 lines, 8,317 bytes)
+=====================================================
+
+MODULE DOCSTRING:
+  "CyberChain Secondary SQL Database Manager."
+  Stores: Users, Hardware/Biometric Passkeys (FIDO2/WebAuthn), Smart Contract
+  transaction records & session lifecycle audit logs.
+  Zero placeholder users: starts 100% clean.
+
+CONSTANTS:
+  CYBERCHAIN_DIR = Path(__file__).resolve().parent
+  STORAGE_DIR    = CYBERCHAIN_DIR / "storage"
+  DB_PATH        = STORAGE_DIR / "cyberchain.db"
+
+FUNCTIONS:
+
+  get_db_connection() -> sqlite3.Connection:
+    Creates STORAGE_DIR if it doesn't exist (parents=True, exist_ok=True).
+    Connects to DB_PATH with check_same_thread=False (allows cross-thread access).
+    Sets conn.row_factory = sqlite3.Row for dict-like row access.
+
+  init_db():
+    Creates three tables if they don't exist:
+
+    TABLE 1: users
+      id         TEXT PRIMARY KEY          (UUID4 string)
+      username   TEXT UNIQUE NOT NULL      (the ONLY required identity field)
+      role       TEXT NOT NULL DEFAULT 'user'  (strictly 'user' or 'admin')
+      created_at TEXT NOT NULL             (ISO 8601 UTC timestamp)
+
+    TABLE 2: passkeys
+      id            TEXT PRIMARY KEY       (UUID4 string)
+      user_id       TEXT NOT NULL          (FK -> users.id)
+      username      TEXT NOT NULL          (denormalized for convenience)
+      credential_id TEXT UNIQUE NOT NULL   (WebAuthn credential identifier)
+      device_name   TEXT DEFAULT 'Smartphone Biometric Passkey'
+      created_at    TEXT NOT NULL          (ISO 8601 UTC timestamp)
+      FOREIGN KEY (user_id) REFERENCES users(id)
+
+    TABLE 3: smart_contract_records
+      id                 INTEGER PRIMARY KEY AUTOINCREMENT
+      session_id         TEXT UNIQUE NOT NULL
+      username           TEXT NOT NULL
+      role               TEXT NOT NULL DEFAULT 'user'
+      entry_time         TEXT NOT NULL      (ISO 8601)
+      exit_time          TEXT NOT NULL      (ISO 8601)
+      duration_seconds   REAL DEFAULT 0    (computed: exit - entry)
+      changes_count      INTEGER DEFAULT 0
+      changes_hash       TEXT NOT NULL      (SHA-256 hex of changes_json)
+      changes_json       TEXT NOT NULL      (full JSON array of changes)
+      contract_address   TEXT NOT NULL      (Ethereum contract address)
+      tx_hash            TEXT NOT NULL      (transaction hash)
+      block_number       INTEGER DEFAULT 0
+      deployer_address   TEXT               (Anvil account[0])
+      status             TEXT DEFAULT 'COMMITTED_ON_CHAIN'
+      recorded_at        TEXT NOT NULL      (ISO 8601)
+      abi_json           TEXT               (full contract ABI as JSON string)
+
+    MIGRATIONS:
+      Checks if 'role' column exists in users table via PRAGMA table_info.
+      If missing, ALTERs table to add it with DEFAULT 'user'.
+      Same migration for smart_contract_records.
+
+    Called automatically on module import (line 259: init_db()).
+
+  get_user(username: str) -> Optional[Dict]:
+    SELECT * FROM users WHERE username = ? (stripped).
+    Returns dict(row) or None.
+
+  get_user_passkeys(username: str) -> List[Dict]:
+    SELECT * FROM passkeys WHERE username = ? (stripped).
+    Returns list of dict(row).
+
+  register_user(username, role="user", credential_id=None, device_name="Smartphone Biometric Passkey"):
+    Validates username is non-empty (raises ValueError).
+    Normalizes role: "admin" if input matches "admin" case-insensitively, else "user".
+    Checks if user exists (SELECT id, role FROM users WHERE username = ?):
+      If exists: Gets uid, updates role if provided.
+      If not: Generates UUID4, INSERTs new user.
+    If credential_id provided:
+      Checks for duplicate (SELECT id FROM passkeys WHERE credential_id = ?).
+      If not duplicate: INSERTs new passkey with UUID4 id.
+    Returns: {user_id, username, role, credential_id, device_name}
+
+  record_smart_contract_session(session_id, username, entry_time, exit_time,
+      changes_list, contract_address, tx_hash, block_number, deployer_address,
+      role="user", abi_json=None) -> int:
+    Computes duration from ISO timestamps (try/except, defaults to 0.0).
+    Serializes changes_list to JSON (indent=2).
+    Computes SHA-256 hash of JSON string.
+    Normalizes role.
+    INSERT OR REPLACE into smart_contract_records with all 16 columns.
+    Returns lastrowid.
+
+  get_all_smart_contract_records() -> List[Dict]:
+    SELECT * FROM smart_contract_records ORDER BY id DESC.
+
+  get_all_users() -> List[Dict]:
+    SELECT with LEFT JOIN on passkeys, GROUP BY user id.
+    Returns id, username, role, created_at, passkey_count.
+    Ordered by created_at DESC.
+
+
+FILE: CyberChain/auth_server.py (574 lines, 19,817 bytes)
+=========================================================
+
+MODULE DOCSTRING:
+  "CYBERCHAIN - FIDO2 / WEBAUTHN CROSS-DEVICE (PHONE BLUETOOTH QR) SERVER"
+  - Uses W3C WebAuthn with hints: ["hybrid"] to prioritize Phone/Tablet Bluetooth QR.
+  - Strictly requires authentic credential signature; never falsely verifies.
+  - Stripped of email and password.
+
+GLOBAL STATE:
+  active_auth_sessions: Dict[str, Dict[str, Any]] = {}
+    Key: session_id (uuid4.hex[:12])
+    Value: {"session_id", "username", "status": "PENDING"|"VERIFIED",
+            "credential_id": None|str, "device_name": None|str}
+  server_instance: Optional[ThreadingHTTPServer] = None
+  server_port: int = 8088
+
+HTTP HANDLER (class AuthHttpHandler):
+  log_message(): Suppressed (pass).
+
+  send_cors_headers(): Origin *, Methods GET/POST/OPTIONS, Headers Content-Type.
+
+  do_OPTIONS(): 200 with CORS.
+
+  do_GET():
+    /auth, /qr, / :
+      Renders passkey authentication page via get_passkey_page_html().
+      Extracts session_id from query param "session".
+      Extracts username from session or query param "user".
+
+    /api/status :
+      Returns session JSON for polling. {"status": "NOT_FOUND"} if missing.
+
+    Else: 404.
+
+  do_POST():
+    /api/verify, /submit :
+      Reads and parses JSON body.
+      STRICT VALIDATION:
+        - session_id must exist AND be in active_auth_sessions (else 400)
+        - credential_id must be non-null, string type, non-empty after strip (else 400)
+      On valid:
+        Sets session status to "VERIFIED".
+        Stores credential_id and device_name.
+        Calls database.register_user() preserving existing role.
+        Returns {"success": true, "status": "VERIFIED"}.
+      On exception: 500.
+
+PASSKEY PAGE HTML (get_passkey_page_html):
+  Returns ~530-line HTML document with complete CSS + JS.
+
+  CSS DETAILS:
+    body: background #06090e, flex center, min-height 100vh
+    .card: background #0c111a, border #1f2a3c, border-radius 18px, max-width 490px
+    .badge: background rgba(0,255,204,0.1), border rgba(0,255,204,0.3), color #00ffcc
+    h1: 22px, font-weight 800, color #f8fafc
+    .user-tag: color #00ffcc
+    .subtitle: 13px, color #94a3b8
+    .instruction-card: background #111824, border #1e293b, border-radius 12px
+    .tip-box: background rgba(234,179,8,0.1), border rgba(234,179,8,0.3), color #fde047
+    .step-number: background rgba(0,255,204,0.15), color #00ffcc, 22x22px circle
+    .btn-main: background #00ffcc, color #06090e, font-weight 800, box-shadow 0 0 20px
+    .btn-secondary: background #111827, border #334155, color #94a3b8
+    .spinner: 12x12px CSS animation (rotate 0.8s linear infinite)
+    .success-panel: background rgba(16,185,129,0.1), border #10b981
+    .checkmark: 54x54px circle, background rgba(16,185,129,0.2), border #10b981
+
+  HTML STRUCTURE:
+    Auth panel:
+      - Badge with SVG icon: "FIDO2 Cross-Device Passkey"
+      - Title: "Sign In as {username}"
+      - Subtitle: "Scan the QR code with your phone camera..."
+      - Instruction card with tip box and 4 numbered steps:
+          1. Click "Display Phone Bluetooth QR" below
+          2. Scan QR with iPhone/Android camera
+          3. Phone connects via Bluetooth, prompts for Fingerprint
+          4. Tab closes, logs into CyberChain
+      - Primary button: "Display Phone Bluetooth QR" (with phone SVG icon)
+      - Secondary button: "💻 Or Use Workstation Sensor (Windows Hello / Mac Touch ID)"
+      - Status box with spinner
+
+    Success panel (hidden):
+      - Checkmark: "✓"
+      - Title: "Passkey Verified via Phone!"
+      - Description: "Biometric fingerprint confirmed..."
+
+  JAVASCRIPT:
+
+    setStatus(msg, isWaiting, isError):
+      Updates #status-text content, color (#ef4444 error, #00ffcc waiting, #94a3b8 default).
+      Shows/hides spinner.
+
+    sendVerification(credId, devName):
+      Validates credId is non-empty.
+      POSTs to /api/verify with {session_id, credential_id, client_device}.
+      On 200: calls onAuthSuccess().
+      On error: shows error status.
+
+    onAuthSuccess():
+      Hides auth-panel, shows success-panel.
+      setTimeout(window.close, 800).
+
+    triggerBluetoothCrossDevice():  [BOUND TO PRIMARY BUTTON]
+      Shows instructional status message.
+      Checks window.PublicKeyCredential support.
+      Generates 32-byte challenge.
+      Calls navigator.credentials.create() with:
+        rp: { name: "CyberChain Custody", id: window.location.hostname }
+        user: { id: TextEncoder(username), name: username, displayName: username }
+        pubKeyCredParams: [ES256 (-7), RS256 (-257)]
+        timeout: 120000 (2 minutes)
+        hints: ["hybrid"]  <-- CRITICAL: Prioritizes phone Bluetooth QR
+        authenticatorSelection: {
+          userVerification: "required",
+          residentKey: "preferred"
+        }
+        attestation: "none"
+      On success: sendVerification(credential.id, "Smartphone Bluetooth Biometric Passkey")
+      On NotAllowedError: "❌ Passkey prompt was cancelled or closed. Click button to retry."
+        DOES NOT VERIFY. This is the critical security guarantee.
+
+    triggerPlatformLocal():  [BOUND TO SECONDARY BUTTON]
+      Same as above but with:
+        authenticatorAttachment: "platform" (forces Windows Hello / Touch ID)
+        timeout: 60000 (1 minute)
+        No hints parameter
+      On success: sendVerification(credential.id, "Workstation Local Biometric Sensor")
+
+SERVER LIFECYCLE:
+  start_auth_server(port=8088) -> int:
+    If server_instance already exists, returns existing port.
+    Tries ports: 8088, 8089, 8090, 8888, 0 (OS-assigned).
+    Creates ThreadingHTTPServer on 0.0.0.0.
+    Starts in daemon thread.
+    Prints "[Auth Server] Active on port {port}".
+
+  create_auth_session(username: str) -> str:
+    Generates uuid4.hex[:12] session_id.
+    Stores in active_auth_sessions with PENDING status, null credential/device.
+
+  is_session_verified(session_id: str) -> bool:
+    Returns True if session exists AND status == "VERIFIED".
+
+
+FILE: CyberChain/blockchain.py (260 lines, 8,332 bytes)
+======================================================
+
+MODULE DOCSTRING:
+  "CyberChain Anvil Blockchain & Smart Contract Manager."
+  - Starts local Anvil EVM node upon user login
+  - Deploys SessionAuditLedger.sol smart contract
+  - Registers full session lifecycle on logout
+  - Stops Anvil node cleanly upon session completion
+
+CONSTANTS:
+  CYBERCHAIN_DIR      = Path(__file__).resolve().parent
+  CONTRACTS_DIR       = CYBERCHAIN_DIR / "contracts"
+  CONTRACT_JSON_PATH  = CONTRACTS_DIR / "SessionAuditLedger.json"
+  anvil_process: Optional[subprocess.Popen] = None
+
+FUNCTIONS:
+
+  find_anvil_binary() -> Optional[str]:
+    Candidate paths checked in order:
+      1. C:\Users\ASUS\.foundry\bin\anvil.exe (hardcoded for dev machine)
+      2. ~/.foundry/bin/anvil.exe (expanduser)
+      3. ~/.cargo/bin/anvil.exe (expanduser)
+    Falls back to shutil.which("anvil.exe") or shutil.which("anvil").
+    If still not found, tries shutil.which("ganache.cmd") or shutil.which("ganache").
+    Returns path or None.
+
+  is_port_open(port=8545, host="127.0.0.1", timeout=0.5) -> bool:
+    Creates socket.create_connection with 0.5s timeout.
+    Returns True if connects, False on timeout/refused/OSError.
+
+  wait_for_rpc(port=8545, timeout=15.0) -> bool:
+    Polls is_port_open every 0.3 seconds for up to 15 seconds.
+
+  start_anvil(port=8545) -> bool:
+    Checks if already running (is_port_open). Returns True if so.
+    Finds anvil binary. Returns False if not found.
+
+    If binary is Ganache: cmd = [bin, "-p", port, "-q"]
+    If binary is Anvil:   cmd = [bin, "--port", port, "--silent"]
+
+    Windows-specific:
+      use_shell = True for .cmd/.bat files
+      creation_flags = CREATE_NO_WINDOW (0x08000000)
+
+    subprocess.Popen with stdout=DEVNULL, stderr=DEVNULL.
+    Waits for RPC readiness (wait_for_rpc, 12s timeout).
+    Prints "[Blockchain] Anvil EVM node is active at http://127.0.0.1:{port}".
+
+  stop_anvil():
+    If anvil_process exists:
+      Prints "[Blockchain] Stopping Anvil EVM node..."
+      Calls terminate(), wait(timeout=3).
+      On exception: calls kill().
+      Sets anvil_process = None.
+      Prints "[Blockchain] Anvil node stopped."
+
+  load_contract_artifact() -> Dict:
+    Reads SessionAuditLedger.json, returns parsed JSON (abi + bytecode).
+    Raises FileNotFoundError if missing.
+
+  deploy_contract(rpc_url="http://127.0.0.1:8545") -> Dict:
+    from web3 import Web3 (deferred import to avoid ImportError when web3 not installed)
+    Connects via HTTPProvider.
+    Uses accounts[0] as deployer.
+    Loads ABI and bytecode from artifact.
+    Prepends "0x" to bytecode if missing.
+    Creates contract factory, calls constructor().transact({from: deployer}).
+    Waits for transaction receipt.
+    Returns: {contract_address, deployer, abi, bytecode, deployment_tx, block_number, gas_used}
+
+  record_session_logout(username, session_id, entry_time_str, exit_time_str,
+      changes_list, user_id=None, contract_address=None, rpc_url=...) -> Dict:
+    Connects to Anvil via Web3.
+    Loads contract artifact.
+    If no contract_address: deploys fresh contract.
+    Converts timestamps to UNIX seconds via datetime.fromisoformat().timestamp().
+    Serializes changes_list to JSON (indent=2).
+    Computes SHA-256 hash: "0x" + hashlib.sha256(json.encode()).hexdigest().
+    User ID defaults to f"usr_{username}".
+
+    Calls contract.functions.recordSessionLogout(
+      uid, username, session_id, entry_ts, exit_ts,
+      len(changes_list), changes_hash, changes_json
+    ).transact({from: deployer})
+
+    Waits for receipt.
+    Verifies on-chain: contract.functions.getSession(session_id).call().
+
+    Returns: {status: "COMMITTED_ON_CHAIN", contract_address, tx_hash, block_number,
+              gas_used, deployer_address, changes_count, changes_hash,
+              on_chain_entry_time, on_chain_exit_time, abi_json}
+
+
+FILE: CyberChain/contracts/SessionAuditLedger.sol (125 lines, 4,076 bytes)
+=========================================================================
+
+SPDX-License-Identifier: MIT
+Compiler: pragma solidity ^0.8.20;
+
+CONTRACT: SessionAuditLedger
+
+  STRUCT SessionLog:
+    string userId              (e.g. "usr_JohnDoe" or UUID)
+    string username            (human-readable name)
+    string sessionId           (e.g. "sess_a1b2c3d4")
+    uint256 entryTime          (UNIX timestamp of login)
+    uint256 exitTime           (UNIX timestamp of logout)
+    uint256 sqlModificationsCount  (number of changes)
+    string sqlModificationsHash    (SHA-256 hex of changes JSON)
+    string detailsJson             (full JSON array of changes)
+    uint256 blockTimestamp         (block.timestamp at recording)
+    address recordedBy             (msg.sender = deployer address)
+
+  STATE:
+    mapping(string => SessionLog) private sessions;     (sessionId -> log)
+    string[] private sessionIds;                         (insertion-order array)
+    mapping(string => string[]) private userSessionMap;  (userId -> sessionIds[])
+
+  EVENT SessionLogoutRecorded:
+    indexed string userId
+    indexed string sessionId
+    uint256 entryTime
+    uint256 exitTime
+    uint256 sqlModificationsCount
+    string sqlModificationsHash
+    indexed address recordedBy
+
+  FUNCTIONS:
+    recordSessionLogout(8 params) external returns (bool):
+      require(bytes(sessionId).length > 0)    -- non-empty session ID
+      require(sessions[sessionId].entryTime == 0)  -- prevent duplicates
+      Stores SessionLog struct.
+      Pushes sessionId to sessionIds array and userSessionMap[userId].
+      Emits SessionLogoutRecorded event.
+      Returns true.
+
+    getSession(sessionId) external view returns (SessionLog memory):
+      require(s.entryTime > 0) -- session must exist
+      Returns full struct.
+
+    getUserSessions(userId) external view returns (string[] memory):
+      Returns array of all session IDs for given user.
+
+    totalSessions() external view returns (uint256):
+      Returns sessionIds.length.
+
+    isSessionRecorded(sessionId) external view returns (bool):
+      Returns sessions[sessionId].entryTime > 0.
+
+
+FILE: CyberChain/app.py (732 lines, 31,191 bytes)
+=================================================
+
+MODULE DOCSTRING:
+  "CYBERCHAIN - PRIMARY USER AUTHENTICATION & BLOCKCHAIN SESSION WORKSTATION"
+  5-step workflow:
+    1> Login with Username + "Enter Passkey" button
+    2> Browser opens QR code; passkey scanned via phone
+    3> Anvil starts; PeakLedger launches; CyberChain hides
+    4> Session monitored until PeakLedger closes
+    5> Auto-commit to blockchain + secondary SQL DB
+
+IMPORTS:
+  os, sys, time, uuid, json, subprocess, webbrowser, datetime, pathlib
+  database, blockchain, auth_server (local CyberChain modules)
+
+GUI MODE (run_gui()):
+  class CyberChainAppWindow(QMainWindow):
+
+    Window: "CyberChain - Hardware Passkey & Blockchain Custody Workstation"
+    Min size: 560x620, Default: 600x660
+
+    STATE:
+      current_auth_session_id: str|None
+      active_user: str|None
+      active_role: str ("user" default)
+      active_session_id: str|None
+      entry_time: str|None (ISO 8601)
+      session_changes: list[dict]  (each: {index, timestamp, description})
+      peakledger_proc: subprocess.Popen|None
+
+    TIMERS:
+      auth_poll_timer: QTimer, 500ms, calls check_auth_status()
+      peakledger_monitor_timer: QTimer, 1000ms, calls monitor_peakledger_session()
+
+    THEME:
+      Background: #080d14
+      Text: #e2e8f0
+      Font: 'Segoe UI', system-ui, sans-serif
+      GroupBox: border #1e293b, accent #00ffcc
+      Input: background #0f172a, focus border #00ffcc, focus bg #131d31
+      Primary button: background #00ffcc, text #06090e, weight 800
+      Secondary button: bg #1e293b, text #94a3b8
+      Logout button: bg #e11d48, hover #f43f5e
+      Table: bg #0b111a, grid #1e293b
+
+    LOGIN INTERFACE (show_login_interface):
+      Card (#loginCard): background #0d131d, border #1f293d, border-radius 16px
+        Width: 460px fixed, padding 32px
+      Badge: "◈ CYBERCHAIN AUTHENTICATION" (#00ffcc, 11px, bold, 1.5px spacing)
+      Title: "Forensic Custody Login" (22px, 800 weight, white)
+      Subtitle: "FIDO2 / Hardware Biometric Passkey System" (13px, #64748b)
+      Label: "Name:" (600 weight, 13px, #cbd5e1)
+      QLineEdit: placeholder "Enter your Name", starts empty
+      Button: "Enter Passkey" (height 46px, pointing hand cursor)
+      Status: "Ready for passkey authentication" (#64748b, 12px)
+
+    on_enter_passkey_clicked():
+      Validates username non-empty (QMessageBox.warning).
+      Checks/registers user in database.
+      Starts auth server.
+      Creates auth session.
+      Opens browser: http://localhost:{port}/auth?session={id}&user={name}
+      Updates status: "QR Code opened in browser. Scan or touch sensor..."
+      Status color: #00ffcc, bold
+      Disables button.
+      Starts auth_poll_timer at 500ms.
+
+    check_auth_status():
+      Polls auth_server.is_session_verified(session_id).
+      On verified: stops timer, updates status, triggers on_login_successful after 300ms.
+
+    on_login_successful(username):
+      Sets active_user, active_role (from database), active_session_id (sess_{uuid.hex[:8]}),
+      entry_time (UTC ISO), session_changes = [].
+      Prints user info with role.
+      Starts Anvil blockchain (port 8545).
+      Records initial change: "Session initialized by authorized examiner '{user}' [{ROLE}]..."
+      Launches PeakLedger UI.
+      Hides CyberChain window (self.hide()).
+      Starts peakledger_monitor_timer at 1000ms.
+
+    launch_peakledger_ui() -> bool:
+      Locates peakledger/ui/main.py relative to CYBERCHAIN_DIR.parent.
+      Falls back to peakledger_windows/peakledger/ui/main.py.
+      If already running (poll() is None), returns True.
+      Uses pythonw.exe instead of python.exe on Windows (for no console).
+      Spawns with CREATE_NO_WINDOW flag.
+      cwd = peakledger/ (main.py's parent's parent).
+
+    open_admin_console():
+      Only accessible to admin role (QMessageBox.warning for non-admin).
+      Launches admin_app.py via subprocess with pythonw.exe, CREATE_NO_WINDOW.
+
+    monitor_peakledger_session():
+      Checks self.peakledger_proc.poll().
+      If not None (process exited): stops timer, calls auto_commit_session().
+
+    auto_commit_session():
+      Sets exit_time to UTC ISO.
+      Locates evidence directory (peakledger/evidence/ or alt path).
+
+      EVIDENCE HARVESTING:
+        1. Reads tamper_audit_report.json:
+           Extracts video_id, is_pristine, tampered_packets, suspect_root, intervals.
+           If pristine: verdict = "AUTHENTIC (Zero Packet Divergence Detected)"
+           If tampered: verdict = "TAMPERED ({N} packet mutations detected)"
+           Records change with verdict and Merkle root (first 16 chars + "...").
+           If tampered with intervals: records Layer 2 NVDEC isolation details.
+
+        2. Checks Forensic_Report.html existence:
+           Records change: "Courtroom Admissibility: NIST SP 800-86 Forensic Custody
+           Audit Report generated and sealed."
+
+        3. Records final change: "Session lifecycle concluded... Auto-committed on-chain."
+
+      BLOCKCHAIN COMMIT:
+        Calls blockchain.record_session_logout() with all session data.
+        Extracts contract_address, tx_hash, block_num, abi_json.
+        Calls database.record_smart_contract_session() with all fields.
+        Prints contract details.
+        Stops Anvil.
+
+        CONFIRMATION DIALOG (QMessageBox.Information):
+          Title: "CyberChain - Session Auto-Committed"
+          Text: "◈ Forensic Session Successfully Auto-Committed On-Chain!"
+          Details: examiner name/role, session ID, contract address, tx hash,
+                   block number, sealed events count, SQL record ID.
+
+        On blockchain error: stops Anvil, shows QMessageBox.critical.
+        Finally: QApplication.quit()
+
+    record_change(description):
+      Appends {index, timestamp (UTC ISO), description} to session_changes.
+      If tbl_changes widget exists, inserts row.
+
+    closeEvent(event):
+      Stops all timers.
+      Terminates PeakLedger subprocess if running.
+      Stops Anvil.
+      Accepts event.
+
+CLI MODE (run_cli()):
+  Same workflow but text-based:
+    1. Prompts for Name
+    2. Checks/registers user, gets role
+    3. Starts auth server, opens browser
+    4. Polls is_session_verified every 0.5s
+    5. Starts Anvil
+    6. Launches PeakLedger as subprocess
+    7. Waits for PeakLedger to exit (poll every 1.0s)
+    8. Harvests evidence (same as GUI)
+    9. Commits to blockchain + database
+    10. Stops Anvil
+    11. Prints summary
+
+ENTRY POINT:
+  --cli: run_cli()
+  Non-Windows without DISPLAY: run_cli()
+  Else: try run_gui(), on exception show_fatal_error() then fall back to run_cli()
+
+
+FILE: CyberChain/admin_app.py (574 lines, 24,362 bytes)
+======================================================
+
+MODULE DOCSTRING:
+  "CYBERCHAIN - SECONDARY ADMIN APPLICATION"
+  Sole functionality: Admin database inspection.
+
+GUI MODE:
+  class AdminAppWindow(QMainWindow):
+    Title: "CyberChain Admin Console - Hardware Passkey Authentication"
+    Min: 560x620, Default: 600x660
+
+    LOGIN INTERFACE:
+      Same dark theme as main app.
+      Badge: "◈ CYBERCHAIN ADMINISTRATOR AUTHENTICATION"
+      Title: "Admin Console Login"
+      Name input + "Enter Passkey" button.
+
+      SECURITY: on_enter_passkey_clicked()
+        BEFORE passkey: Checks database.get_user(username).
+        If user doesn't exist OR role != "admin":
+          Shows "Not permitted. Administrator privileges required."
+          Status color: #ef4444 (red)
+          QMessageBox.critical: "Access Denied"
+          Re-enables button. Does NOT proceed to WebAuthn.
+
+        If admin: proceeds with auth server + browser QR.
+
+      check_auth_status():
+        AFTER passkey verified: Re-checks role from database.
+        If role changed to non-admin between passkey initiation and completion:
+          Shows Access Denied and redirects to login screen.
+        If still admin: proceeds to admin interface.
+
+    ADMIN INTERFACE (show_admin_interface):
+      Resizes to 1080x720 minimum, 1140x760 default.
+      Centers on screen.
+      Title: "CyberChain Admin Workstation - Blockchain & SQL Audit Inspector"
+
+      Header:
+        Badge: "◈ CYBERCHAIN ADMINISTRATOR INTERFACE"
+        Title: "Blockchain & Smart Contract Audit Console"
+        Subtitle: "Authoritative Secondary Database: {DB_PATH}"
+        Buttons: "⟳ Refresh Ledger", "⎋ Logout" (logout-btn class)
+
+      TAB 1: "Smart Contract Session Records"
+        QTableWidget: 9 columns
+          Record ID, Session ID, Username, Role, Entry Time, Exit Time,
+          Changes, Smart Contract Address, Tx Hash
+
+        Role column: ADMIN in #00ffcc, USER in #94a3b8.
+        Entry/Exit time: First 19 chars, T replaced with space.
+        Tx Hash: "0x" + first 16 chars + "..."
+
+        Detail panel (QGroupBox "Selected Smart Contract Details && Forensic Hash Verification"):
+          lbl_verify_status: Initial text about selecting a session.
+          txt_changes_json: QTextEdit (read-only) showing full JSON payload.
+
+        on_record_selected():
+          Gets record from cached_records dict.
+          Displays full changes_json.
+          RECOMPUTES SHA-256: hashlib.sha256(changes_json.encode()).hexdigest()
+          Compares with stored changes_hash (strips "0x" prefix).
+          If MATCH: "✓ FORENSIC HASH VERIFIED: SHA-256({hash[:16]}...) MATCHES ON-CHAIN RECORD!"
+                    Color: #10b981 (green)
+          If MISMATCH: "⚠ HASH MISMATCH! Database record may have been altered."
+                       Color: #ef4444 (red)
+
+      TAB 2: "Registered Users && Passkeys"
+        5 columns: User ID (truncated to 8 chars + "..."), Name, Role, Active Passkeys, Created At.
+
+      TAB 3: "Contract ABI && Specification"
+        Reads SessionAuditLedger.sol file.
+        Displays in QTextEdit (read-only, monospace font).
+
+CLI MODE:
+  Prompts for Admin Name.
+  Checks role (rejects non-admin).
+  Auth server + browser QR + polling.
+  Prints all smart contract records and users in formatted tables.
+
+
+################################################################################
+################################################################################
+
+                    PART D — PEAKLEDGER (peakledger/)
+
+################################################################################
+################################################################################
+
+PeakLedger is the computational forensic engine. It is written in C++20 with
+NVIDIA CUDA for GPU acceleration and Python for the GUI frontend.
+
+CORE ARCHITECTURE: TWO-LAYER DECOUPLED FORENSIC SYSTEM
+=======================================================
+
+Layer 1 — Bitstream Merkle Tree Cryptographic Anchor:
+  Operates directly on compressed video container packets (NAL units).
+  Every packet (I-frame, P-frame, B-frame) is hashed:
+    H_leaf = SHA256(CanonicalAnnexB_NAL || PTS || DTS || LeafIndex)
+  Leaf hashes are assembled into a balanced binary Merkle Tree.
+  The 32-byte Merkle Root seals the entire video.
+  Verification: re-hash packets, rebuild tree, compare roots.
+  Speed: >5,400,000 packets/second. No GPU decoding needed.
+  Guarantees: 100% bitwise cross-GPU/cross-CPU determinism.
+
+Layer 2 — Forensic Intelligence & Attribute Engine:
+  Operates on decoded video frames (via NVIDIA NVDEC).
+  Extracts semantic attributes per detected entity:
+    - ArcFace 512-D facial embeddings (cosine sim >= 0.72)
+    - License plate OCR with Levenshtein edit distance (D <= 1)
+    - Traffic signal states (RED=0, AMBER=1, GREEN=2, UNKNOWN=255)
+    - Countdown timer integers (|Δt| <= 1s)
+    - Pedestrian torso/lower-body HSV clothing palettes (10 color bins)
+  Stored in SQLite Content-Addressable Storage (CAS).
+
+Two-Tier Verification:
+  1. Layer 1 scans ALL packets (zero-decode). If Merkle roots match: AUTHENTIC.
+  2. If mismatch detected: isolate divergent interval [PTS_start, PTS_end].
+     Selectively decode ONLY those frames via NVDEC.
+     Run Layer 2 attribute comparison against baseline.
+
+HEADER FILES (include/)
+=======================
+
+include/common.hpp:
+  - GRID_COLS = 32, GRID_ROWS = 16, GRID_CELLS = 512
+  - SHA256_DIGEST_LENGTH = 32, SHA256_HEX_LENGTH = 64
+  - SignalState enum: RED=0, AMBER=1, GREEN=2, UNKNOWN=255
+  - ColorBin enum: BLACK, WHITE, RED, ORANGE, YELLOW, GREEN, BLUE, PURPLE, GRAY, UNKNOWN
+  - DominantColors struct: primary/secondary ColorBin + area ratios
+  - ForensicEntityRecord struct: video_id, pts, frame_index, track_id, class_id,
+    label, bbox [x1,y1,x2,y2], confidence, 512-D face embedding (std::array<float,512>),
+    license_plate_text, signal_state, signal_countdown_s, torso_colors, lower_colors,
+    reference_crop_jpeg (blob), reference_crop_hash, is_reference_crop
+  - TamperDelta struct: pts, frame_index, expected/observed hash, residual_energy,
+    cell_residuals, embedding_cosine_sim, license_plate_dist, signal_state_mismatch,
+    signal_timer_delta, color_mismatch
+
+include/crypto_merkle.hpp:
+  - FrameHasher class: wraps EVP_MD_CTX* with RAII lifetime
+  - Static: compute_sha256(buffer), combine_hashes(left, right) -> H_parent = SHA256(L||R)
+  - MerkleTree class: builds balanced binary tree from leaf vector
+    get_root(), get_proof(index) -> O(log N) proof
+  - verify_proof(leaf, proof, expected_root) -> bool
+
+include/cuda_preprocess.cuh:
+  - TRT_INPUT_C=3, TRT_INPUT_H=640, TRT_INPUT_W=640
+  - TRT_INPUT_TENSOR_ELEMENTS = 1,228,800 floats (~4.69 MB)
+  - CudaPreprocessor: NV12 Y-plane -> 640x640, [0,255]->[0.0,1.0], 1ch->3ch NCHW
+  - Takes src_pitch for NVDEC stride handling
+  - Runs on caller-provided cudaStream_t
+
+include/cuda_spatial_hash.cuh:
+  - CudaSpatialHasher: manages CUDA streams + pinned host memory
+  - hash_frame_async(): 32x16 thread blocks, warp-level __shfl_down_sync reductions
+  - synchronize_signature(): retrieves 512-byte GridSignature from pinned memory
+
+include/ledger_db.hpp:
+  - 5 tables: video_metadata, frame_hashes, vector_frames_blockchain,
+    semantic_evidence_blockchain, forensic_frame_metadata
+  - forensic_frame_metadata: record_id, video_id, pts, frame_index, track_id,
+    class_id, label, bbox, confidence, face_embedding (512 floats BLOB),
+    license_plate_text, signal_state, signal_countdown_s, torso/lower colors,
+    reference_crop_jpeg (BLOB), reference_crop_hash, is_reference_crop
+  - Composite B-tree indexes: (video_id, pts), (video_id, track_id), (video_id, plate)
+  - APIs: store_forensic_records(), query by pts/range/track/plate
+
+include/motion_tracker.hpp:
+  - SemanticMotionTelemetry: 32-byte struct, has_person, has_bicycle, is_paired,
+    heading_code, centroid, speed, 20-char summary
+  - TrackedEntity: track_id, class_id, label, bbox, centroid, velocity, speed,
+    heading, is_paired, missed_frames
+  - MotionTracker: class-wise NMS (IoU 0.45), Hungarian centroid association,
+    composite cyclist pairing (person+bicycle within 160px),
+    heading code (8 compass directions + stationary if speed < 0.5 px/frame)
+
+include/nvdec_decoder.hpp:
+  - read_packet(): demuxes compressed packets, ITU-T H.264 Annex B canonicalization
+    (AVCC -> 0x000001/0x00000001 start codes)
+  - GpuDecodedFrame: pts, frame_index, dimensions, pitch, d_y_plane, d_uv_plane,
+    is_hw_cuda, motion vectors
+  - seek_to_pts(): repositions decoder for selective divergence interval decoding
+
+include/ring_buffer.hpp:
+  - TelemetryFrame: exactly 640 bytes, alignas(64)
+    pts, frame_index, live_hash, baseline_hash, is_match, has_baseline,
+    residual_energy, timestamp_ns, 512-byte grid_signature, 32-byte padding
+    hosting SemanticMotionTelemetry
+  - ForensicSharedMemory: exactly 164,608 bytes
+    magic=0x4653484D, version, capacity=256, 256 TelemetryFrame slots
+    write_seq at offset 64, read_seq at offset 128, is_tampered at offset 192
+    (separate L1 cache lines to eliminate false sharing)
+  - ShmProducer/ShmConsumer: shm_open, ftruncate, mmap, memory_order_release/acquire
+
+include/tamper_extractor.hpp:
+  - TamperEvidence: pts, frame_index, expected/observed hash, residual_energy,
+    image_filepath, 512-element cell_residuals vector
+  - compute_motion_residual(): motion vector magnitude differentials
+  - dump_evidence_frame(): CUDA->host, NV12->YUV420P, JPEG encode
+  - emit_tamper_signal(): structured stderr alerts
+
+include/tensorrt_infer.hpp & trt_inference.hpp:
+  - VramProfile: LAPTOP (<8GB, target <2.5GB) vs DESKTOP (>=8GB)
+  - TrtBufferSlot: d_input (1x3x640x640), d_output (1x84x8400), ready_event
+  - TrtInferenceEngine: loads .engine via nvinfer1::IRuntime, enqueueV3
+
+
+12-PHASE FORENSIC PIPELINE
+===========================
+
+Phase 1: Container Demuxing & Annex B Bitstream Ingestion
+  Opens MP4/MKV/AVI via FFmpeg libavformat.
+  Extracts raw AVPacket bitstreams WITHOUT decoding.
+  Normalizes AVCC length headers to Annex B start codes (0x000001/0x00000001).
+  Ingests ALL picture types: I, P, B frames. Zero skipping.
+
+Phase 2: Layer 1 Canonical Leaf Hashing & Merkle Tree
+  H_leaf = SHA256(CanonicalNAL || PTS || DTS || LeafIndex)
+  Builds balanced binary Merkle Tree.
+  Seals with immutable 32-byte Merkle Root.
+
+Phase 3: NVDEC Hardware Video Decoding
+  AVCodecContext with AV_HWDEVICE_TYPE_CUDA.
+  Decodes into NV12 surfaces in GPU VRAM (d_y_plane, d_uv_plane).
+  Extracts AVMotionVector for residual analysis.
+  Zero host memory copies.
+
+Phase 4: CUDA Luminance/Chrominance Preprocessing
+  Stream A: Spatial macro-grid (32x16 = 512 cells) with warp-level shuffle reductions.
+  Stream B: Bilinear resize to 640x640, normalize [0,1], NCHW layout.
+  Both run concurrently on separate CUDA streams.
+
+Phase 5: TensorRT YOLO Inference
+  Double-buffered execution slots (enqueueV3).
+  8,400 anchor candidates across feature pyramid.
+  80 COCO categories. Confidence threshold filtering.
+
+Phase 6: Motion Tracking, NMS & Cyclist Pairing
+  Class-wise NMS (IoU 0.45).
+  Hungarian/greedy centroid association.
+  Cyclist pairing: person + bicycle within 160px -> paired, bicycle suppressed.
+  Boustrophedon serpentine 1D mapping for spatial locality.
+
+Phase 7: Layer 2 Forensic Attribute Extraction
+  ArcFace 512-D facial embeddings (upper 20% cephalic region, L2 normalized).
+  License plate OCR (alphanumeric string extraction).
+  Traffic signal classification (RED/AMBER/GREEN/UNKNOWN) + countdown timer.
+  Pedestrian clothing HSV palettes (torso + lower body, 10 discrete bins).
+
+Phase 8: Track-Aware Reference Crop Lifecycle
+  Crop on track birth (confidence >= 0.40).
+  Crop on confidence upgrade (+0.15).
+  Result: >93.7% storage reduction (29 crops from 459 entity records in 283 frames).
+
+Phase 9: Dual Blockchain + Forensic Metadata Persistence
+  vector_frames_blockchain: per-frame macro-grid signatures, SHA-256 block hashes.
+  semantic_evidence_blockchain: temporal window entity trajectories.
+  forensic_frame_metadata: Layer 2 CAS records.
+  All committed to evidence/ledger.db via ACID SQLite.
+
+Phase 10: Layer 1 Zero-Decode Bitstream Verification
+  Re-demuxes suspect video.
+  Hashes packets, rebuilds candidate Merkle Root.
+  Compares against baseline root in SQLite.
+  Speed: >5,400,000 packets/sec (>120x real-time).
+  10-hour video: verified in <160ms. Zero GPU usage.
+
+Phase 11: Layer 2 Selective NVDEC Deep Audit
+  Only triggered on Layer 1 mismatch.
+  Isolates [PTS_start, PTS_end] divergence interval.
+  Decodes ONLY those frames via NVDEC.
+  ArcFace audit: S_cosine < 0.72 -> face swap alert.
+  OCR audit: D >= 2 -> fraudulent plate.
+  Signal audit: state mismatch or timer skip > 1s.
+  Clothing audit: dominant color bin shift.
+
+Phase 12: NIST SP 800-86 HTML Report Generation
+  Standalone HTML (evidence/Forensic_Report.html).
+  All images/GIFs/CSS embedded as base64 data URIs.
+  Cryptographic chain traversal badges.
+  NIST SP 800-86 + FRE 902(13)/(14) compliance.
+
+
+LAPTOP VRAM OPTIMIZATION (RTX 3050 4-6GB):
+  VramProfile::LAPTOP mode limits TensorRT workspace to 256MB per context.
+  Throttled double-buffered staging: 2 concurrent frame slots.
+  Direct NV12 surface ingestion (no RGB conversion = 50% VRAM savings).
+  Target footprint: <2.5GB total.
+
+
+################################################################################
+################################################################################
+
+                    PART E — END-TO-END SESSION LIFECYCLE
+
+################################################################################
+################################################################################
+
+Here is the complete, step-by-step lifecycle of a single forensic session:
+
+PRE-SESSION (Entry Station):
+  1. Admin runs entry/entry_station.py --gui (or --cli).
+  2. Enters examiner's Name (e.g., "Inspector_Sharma").
+  3. Selects Role: "user (Forensic Examiner)" or "admin (Administrator)".
+  4. Clicks "Launch Phone Bluetooth Passkey Prompt".
+  5. Browser opens with WebAuthn QR code page.
+  6. Examiner scans QR with phone camera.
+  7. Phone connects via Bluetooth, prompts for fingerprint.
+  8. Fingerprint confirmed -> credential_id captured.
+  9. Entry Station shows "🟢 PASSKEY CAPTURED VIA PHONE!"
+  10. Clicks "Save User & Passkey to Database".
+  11. Name + Role + credential_id committed to cyberchain.db.
+  12. User is now pre-enrolled and can use CyberChain.
+
+SESSION START (CyberChain app.py):
+  13. Examiner runs CyberChain/app.py.
+  14. Login card appears: enters Name, clicks "Enter Passkey".
+  15. User looked up in cyberchain.db (or created if new).
+  16. Auth server starts on port 8088.
+  17. Auth session created (uuid4.hex[:12], status=PENDING).
+  18. Browser opens: http://localhost:8088/auth?session={id}&user={name}
+  19. WebAuthn page displayed with Bluetooth QR + Windows Hello options.
+  20. Examiner authenticates via phone fingerprint or Windows Hello.
+  21. Credential verified -> session status = VERIFIED.
+  22. CyberChain polls at 500ms, detects VERIFIED.
+  23. Role retrieved from database.
+  24. Session ID generated: sess_{uuid4.hex[:8]}.
+  25. Entry time recorded (UTC ISO 8601).
+  26. Anvil EVM blockchain node spawned on port 8545 (background, no window).
+  27. Wait for JSON-RPC readiness (up to 12 seconds).
+  28. Initial session change recorded: "Session initialized by authorized examiner..."
+  29. PeakLedger UI launched: pythonw.exe peakledger/ui/main.py (no console, cwd=peakledger/).
+  30. CyberChain window hides (self.hide()).
+  31. PeakLedger monitor timer starts (1000ms intervals).
+
+FORENSIC ANALYSIS (PeakLedger):
+  32. PeakLedger UI opens as the only visible window.
+  33. Examiner loads baseline video (sample_pristine.mp4).
+  34. C++ backend ingests video through 12-phase pipeline.
+  35. Layer 1 Merkle Tree built from all packet hashes.
+  36. Layer 2 attributes extracted (faces, plates, signals, clothing).
+  37. Dual blockchains + forensic metadata committed to evidence/ledger.db.
+  38. Examiner loads suspect video (sample_suspect.mp4).
+  39. Layer 1 zero-decode verification at >5.4M packets/sec.
+  40. If tampering detected: Layer 2 selective NVDEC deep audit on divergent interval.
+  41. tamper_audit_report.json written with verdict, Merkle root, intervals.
+  42. Forensic_Report.html generated (standalone, base64 embedded, NIST SP 800-86).
+  43. Examiner reviews results in PyQt6 workstation.
+  44. Examiner closes PeakLedger window.
+
+AUTO-COMMIT (CyberChain):
+  45. peakledger_monitor_timer detects process exit (poll() returns non-None).
+  46. Timer stops. auto_commit_session() executes.
+  47. Exit time recorded (UTC ISO 8601).
+  48. tamper_audit_report.json read from peakledger/evidence/.
+  49. Verdict extracted: AUTHENTIC or TAMPERED with packet count.
+  50. Merkle root extracted (first 16 chars logged).
+  51. If tampered: divergence interval count logged.
+  52. Forensic_Report.html existence checked -> courtroom admissibility change logged.
+  53. Final change: "Session lifecycle concluded... Auto-committed on-chain."
+  54. SessionAuditLedger.sol deployed to Anvil via Web3.py.
+  55. recordSessionLogout() called with:
+      - userId (usr_{username} or UUID)
+      - username
+      - sessionId (sess_{hex[:8]})
+      - entryTime (UNIX seconds)
+      - exitTime (UNIX seconds)
+      - sqlModificationsCount (len of changes list)
+      - sqlModificationsHash (0x + SHA-256 hex of JSON)
+      - detailsJson (full JSON array, indent=2)
+  56. Transaction receipt captured: contract_address, tx_hash, block_number, gas_used.
+  57. On-chain verification: getSession(sessionId) called to confirm.
+  58. database.record_smart_contract_session() called with all 16 fields.
+  59. Anvil node stopped (terminate + wait + kill).
+  60. Confirmation dialog displayed with full details.
+  61. Application exits (QApplication.quit()).
+
+POST-SESSION (Admin Console):
+  62. Admin runs admin_app.py.
+  63. Enters admin Name, authenticates via passkey.
+  64. Role verified twice (pre and post passkey).
+  65. Admin interface loads with 3 tabs.
+  66. Tab 1: Selects session record from table.
+  67. Full changes JSON displayed.
+  68. SHA-256 hash recomputed from changes_json.
+  69. Compared against stored changes_hash.
+  70. Green badge: "✓ FORENSIC HASH VERIFIED" or Red: "⚠ HASH MISMATCH".
+  71. Tab 2: Reviews all enrolled users and their passkey counts.
+  72. Tab 3: Inspects SessionAuditLedger.sol source code.
+
+
+################################################################################
+################################################################################
+
+                    PART F — CROSS-SYSTEM DATA FLOW
+
+################################################################################
+################################################################################
+
+                      ┌──────────────┐
+                      │ Entry Station│
+                      │   (entry/)   │
+                      └──────┬───────┘
+                             │
+              User identity + FIDO2 credential
+                             │
+                             ▼
+                    ┌────────────────┐
+                    │  cyberchain.db │ (CyberChain/storage/)
+                    │  users table   │
+                    │  passkeys table│
+                    └───────┬────────┘
+                            │
+              User lookup + role verification
+                            │
+                            ▼
+                   ┌─────────────────┐
+                   │   CyberChain    │
+                   │    (app.py)     │
+                   └───┬─────────┬───┘
+                       │         │
+          Starts Anvil │         │ Launches subprocess
+          on port 8545 │         │
+                       ▼         ▼
+              ┌──────────┐  ┌───────────────┐
+              │ Anvil EVM│  │  PeakLedger   │
+              │ Node     │  │  (ui/main.py) │
+              │ :8545    │  └───────┬───────┘
+              └──────────┘          │
+                                    │ Generates artifacts
+                                    ▼
+                        ┌───────────────────────┐
+                        │ peakledger/evidence/   │
+                        │  tamper_audit_report   │
+                        │  Forensic_Report.html  │
+                        │  ledger.db             │
+                        └───────────┬────────────┘
+                                    │
+                    PeakLedger closes (process exits)
+                                    │
+                                    ▼
+                        ┌───────────────────┐
+                        │ auto_commit_session│ (app.py)
+                        └──┬──────────────┬─┘
+                           │              │
+            Reads evidence │              │ Deploys contract +
+            from JSON/HTML │              │ calls recordSessionLogout()
+                           │              │
+                           ▼              ▼
+                  ┌──────────────┐ ┌──────────────┐
+                  │ cyberchain.db│ │ Anvil EVM    │
+                  │ smart_contract│ │ SessionAudit │
+                  │ _records     │ │ Ledger.sol   │
+                  └──────────────┘ └──────────────┘
+                           │
+              Admin reads + SHA-256 verifies
+                           │
+                           ▼
+                   ┌──────────────┐
+                   │ Admin Console│
+                   │ (admin_app)  │
+                   └──────────────┘
+
+
+DATA ARTIFACTS SUMMARY:
+
+  cyberchain.db (CyberChain/storage/):
+    - users: Names, UUIDs, roles, creation dates
+    - passkeys: FIDO2 credential IDs, device names
+    - smart_contract_records: 17-column session audit records
+
+  ledger.db (peakledger/evidence/):
+    - video_metadata: video params, Merkle root, timestamps
+    - frame_hashes: per-frame PTS, binary hash, hex hash
+    - vector_frames_blockchain: per-frame block chain
+    - semantic_evidence_blockchain: temporal window blocks
+    - forensic_frame_metadata: Layer 2 CAS records (faces, plates, etc.)
+
+  tamper_audit_report.json (peakledger/evidence/):
+    - video_id, is_pristine, tampered_packets, suspect_root, intervals
+
+  Forensic_Report.html (peakledger/evidence/):
+    - Standalone HTML with base64-embedded evidence
+    - NIST SP 800-86 + FRE 902(13)/(14) compliant
+
+  SessionAuditLedger.json (CyberChain/contracts/):
+    - Compiled Solidity ABI + EVM bytecode
+
+
+################################################################################
+################################################################################
+
+                    PART G — SECURITY ARCHITECTURE
+
+################################################################################
+################################################################################
+
+AUTHENTICATION LAYER:
+  - Zero passwords. Zero emails. Zero shared secrets.
+  - FIDO2/WebAuthn public-key cryptography only.
+  - ES256 (ECDSA P-256) and RS256 (RSA PKCS#1 v1.5) supported.
+  - Cross-device Bluetooth QR (hints: ["hybrid"]) for phone authentication.
+  - Platform-local (Windows Hello / Touch ID) as fallback.
+  - userVerification: "required" forces biometric (fingerprint/face).
+  - Credential validation: empty/null/whitespace credential_id categorically rejected.
+  - Cancellation (NotAllowedError) never triggers false verification.
+
+ACCESS CONTROL:
+  - Two roles only: 'user' (Forensic Examiner) and 'admin' (Administrator).
+  - Role normalization: any input != "admin" (case-insensitive) defaults to "user".
+  - Admin console: dual-gate verification (pre-passkey + post-passkey role check).
+  - PeakLedger accessible to all authenticated users.
+  - Admin console restricted to admin role only.
+
+SESSION INTEGRITY:
+  - Every session generates a unique session_id (sess_{uuid4.hex[:8]}).
+  - Entry time and exit time recorded as UTC ISO 8601 timestamps.
+  - All session modifications tracked in ordered list with index, timestamp, description.
+  - SHA-256 hash computed over serialized JSON of all changes.
+  - Hash stored on-chain (sqlModificationsHash) and off-chain (changes_hash).
+  - Admin console performs live SHA-256 recomputation for integrity verification.
+
+BLOCKCHAIN ANCHORING:
+  - Anvil EVM node lifecycle bound to user session (starts on login, stops on logout).
+  - SessionAuditLedger.sol deployed per-session (fresh contract each time).
+  - recordSessionLogout() permanently records session data on-chain.
+  - Duplicate session prevention: require(sessions[sessionId].entryTime == 0).
+  - On-chain verification: getSession() called after recording to confirm persistence.
+  - Block timestamp provides independent temporal anchoring.
+
+CRYPTOGRAPHIC INTEGRITY:
+  - PeakLedger Layer 1: SHA-256 Merkle Tree over ALL compressed video packets.
+  - 100% cross-GPU/cross-CPU determinism (pure-integer arithmetic, no floating-point).
+  - CyberChain: SHA-256 hash of session modifications for dual-persistence verification.
+  - Combined: video integrity (Merkle root) + session integrity (changes hash).
+
+FORENSIC STANDARDS COMPLIANCE:
+  - Bharatiya Sakshya Adhiniyam (BSA) 2023, Section 63: electronic record admissibility.
+  - NIST Special Publication 800-86: forensic evidence collection and reporting.
+  - US Federal Rules of Evidence 902(13) & 902(14): self-authenticating digital records.
+  - All reports standalone HTML with zero external dependencies.
+
+
+################################################################################
+################################################################################
+
+                    PART H — TECHNOLOGY STACK INVENTORY
+
+################################################################################
+################################################################################
+
+PEAKLEDGER CORE:
+  Language:       C++20
+  GPU:            NVIDIA CUDA Runtime API (<cuda_runtime.h>)
+  Inference:      NVIDIA TensorRT (<NvInfer.h>), YOLO11/YOLOv8 (640x640)
+  Video:          FFmpeg (libavcodec, libavformat, libavutil), NVIDIA NVDEC
+  Cryptography:   OpenSSL EVP (SHA-256) (<openssl/evp.h>)
+  Database:       SQLite3 (<sqlite3.h>)
+  IPC:            POSIX Shared Memory (shm_open, mmap) (<sys/mman.h>)
+  Build:          CMake 4.2.3+, GNU Make, MSVC v143 (Visual Studio 2022)
+  Models:         ONNX -> TensorRT (.engine), yolo11n.onnx
+
+PEAKLEDGER UI:
+  Framework:      PyQt6 (Qt 6)
+  Visualization:  OpenCV (opencv-python / cv2)
+  Templating:     Jinja2 (for Forensic_Report.html)
+  Packaging:      AppImage (Linux), native Windows
+
+CYBERCHAIN:
+  Language:       Python 3.12+
+  GUI:            PyQt6
+  Blockchain:     Web3.py (Ethereum interaction)
+  EVM Node:       Foundry Anvil (Rust-based local EVM, port 8545)
+  Fallback:       Ganache (Node.js-based)
+  Smart Contract: Solidity ^0.8.20 (SessionAuditLedger.sol)
+  Authentication: W3C WebAuthn / FIDO2 (navigator.credentials.create)
+  HTTP Server:    Python http.server.ThreadingHTTPServer
+  Database:       SQLite3 (cyberchain.db)
+  Hashing:        hashlib (SHA-256)
+
+ENTRY STATION:
+  Language:       Python 3.12+
+  GUI:            PyQt6
+  HTTP Server:    Python http.server.ThreadingHTTPServer (port 8089)
+  Authentication: W3C WebAuthn / FIDO2 (hints: ["hybrid"])
+  Database:       CyberChain/database.py (shared cyberchain.db)
+
+NETWORKING:
+  Anvil RPC:      http://127.0.0.1:8545 (JSON-RPC 2.0)
+  Auth Server:    http://localhost:8088 (HTTP, auth_server.py)
+  Entry Server:   http://localhost:8089 (HTTP, entry_station.py)
+  WebAuthn:       HTTPS not required for localhost (browser exception)
+
+
+================================================================================
+ END OF DOCUMENT
+================================================================================
+
+This document contains every architectural detail, every function signature,
+every data structure, every CSS value, every port number, every file path, every
+security mechanism, and every inter-system communication channel in the entire
+CryptoLedger platform. No detail has been omitted.
+
+Document generated: September 21, 2026
+Platform version: CryptoLedger 3.0-Production

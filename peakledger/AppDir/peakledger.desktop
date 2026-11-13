@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=PeakLedger
+GenericName=Cryptographic Video Forensic Workstation
+Comment=High-Performance GPU-Accelerated Cryptographic Video Forensic Engine & Biometric Intelligence Backend
+Exec=AppRun %F
+Icon=peakledger
+Terminal=false
+Categories=Utility;Security;AudioVideo;Video;
+Keywords=forensics;crypto;video;merkle;tamper;

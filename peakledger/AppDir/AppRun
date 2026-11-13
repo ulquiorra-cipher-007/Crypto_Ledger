@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+set -e
+
+# Resolve AppDir root
+if [ -z "${APPDIR:-}" ]; then
+    APPDIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
+fi
+export APPDIR
+
+# Configure dynamic linker and python search paths
+export LD_LIBRARY_PATH="${APPDIR}/usr/lib:${APPDIR}/usr/lib/x86_64-linux-gnu:/usr/local/cuda/lib64:/usr/lib/wsl/lib:/usr/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH:-}"
+export PATH="${APPDIR}/usr/bin:${PATH}"
+export PYTHONPATH="${APPDIR}/ui:${APPDIR}:${PYTHONPATH:-}"
+
+# Parse CLI vs UI mode
+if [ "$#" -eq 0 ]; then
+    exec python3 "${APPDIR}/ui/main.py"
+fi
+
+case "$1" in
+    --ui)
+        shift
+        exec python3 "${APPDIR}/ui/main.py" "$@"
+        ;;
+    --cli)
+        shift
+        exec "${APPDIR}/usr/bin/forensic_backend" "$@"
+        ;;
+    --ingest|--verify|--info|--list|--clean-frames|-h|--help)
+        exec "${APPDIR}/usr/bin/forensic_backend" "$@"
+        ;;
+    *)
+        if [[ "$1" == -* ]]; then
+            exec "${APPDIR}/usr/bin/forensic_backend" "$@"
+        else
+            exec python3 "${APPDIR}/ui/main.py" "$@"
+        fi
+        ;;
+esac

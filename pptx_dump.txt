@@ -1,0 +1,171 @@
+
+--- Slide 1 ---
+TITLE PAGE
+SMART INDIA HACKATHON 2026
+Problem Statement ID- SIH26150
+Problem Statement Title- Development of a Multi-Vendor DVR/NVR Forensic Analysis Tool for Standardized Acquisition, Recovery, and Analysis of Surveillance Evidence
+Theme- Blockchain & Cybersecurity
+PS Category- Software
+Team ID- 124897
+Team Name- Crypto Miners
+
+--- Slide 2 ---
+PROPOSED SOLUTION: Verifiable Multi-Vendor DVR/NVR Forensics
+2
+@SIH Idea submission- Template
+Crypto Miners
+Problem / Before
+Multi-vendor DVR/NVR: Proprietary filesystems, codecs and fragmented extraction workflows.
+Recovery & timing: Unindexed/deleted frames and clock drift complicate forensic timelines.
+Integrity & custody: Floating-point drift can create false alarms; centralized audit logs remain mutable.
+CyberChain + PeakLedger (Integrated)
+CyberChain trust layer: FIDO2/WebAuthn passkeys, strict RBAC (User vs Admin), session audit & evidence provenance.
+PeakLedger forensic core: H.264 bitstream Merkle sealing + selective NVDEC/TensorRT semantic analysis.
+EVM custody proof: SessionAuditLedger anchors session identity/lifecycle and the database-state digest.
+CORE INNOVATION  •  integrated forensic computation + verifiable evidence provenance
+MULTI-VENDORDVR/NVR
+PEAKLEDGERFORENSIC CORE
+CYBERCHAINTRUST LAYER
+LAYER 1MERKLE
+LAYER 2GPU AI/ML
+EVMCUSTODY PROOF
+CORE INNOVATION  •  integrated forensic computation + verifiable evidence provenance
+BITSTREAM → MERKLE → DIVERGENCE → SELECTIVE NVDEC → SQL DIGEST → EVM PROOF
+
+--- Slide 3 ---
+TECHNICAL APPROACH
+3
+@SIH Idea submission- Template
+Crypto Miners
+1. TECHNOLOGIES TO BE USED
+Programming Languages
+• Python
+• C++20 / CUDA C++
+• Solidity 0.8.20
+• Shell / Batch scripting
+Frameworks & Libraries
+• PyQt6 (User & Admin UI)
+• Web3.py & Foundry / Anvil
+• FFmpeg / libav
+Databases & Storage
+• SQLite3 WAL (cyberchain.db)
+• POSIX shared memory
+• Content-addressable evidence storage
+Forensics & Processing
+• H.264 Annex B
+• OpenSSL EVP SHA-256
+• NVDEC + TensorRT
+• ArcFace / Levenshtein OCR
+• HSV attribute clustering
+Blockchain & Security
+• FIDO2 / WebAuthn (Passkeys)
+• Strict RBAC (Admin/User)
+• EVM smart contract custody
+DevOps & Tools
+• Git & GitHub
+• Linux (Ubuntu)
+• RTX 3050 profile (<2.5 GB VRAM)
+2. METHODOLOGY AND PROCESS FOR IMPLEMENTATION
+1
+1. Input & OEM Parsing
+• FFmpeg demuxes MP4/MKV
+• Modular vendor adapters handle supported DVR/NVR formats
+2
+2. Read-Only Acquisition
+• Source remains unchanged
+• PeakLedger ingestion starts
+• Chain-of-custody session begins
+3
+3. Layer 1 Sealing
+• H.264 NAL units canonicalized
+• PTS/DTS/index bound into SHA-256 Merkle leaves
+4
+4. Divergence Detection
+• Compare sealed Merkle state
+• Locate divergent packet / PTS interval
+5
+5. Layer 2 Analysis
+• Selective NVDEC/TensorRT decoding
+• ArcFace, OCR, signals and HSV attributes
+6
+6. Custody Anchoring
+• SQLTracker builds deterministic SHA-256 state proof
+• recordSessionLogout anchors proof on EVM
+7
+7. Reporting
+• Forensic report records detected differences
+• Includes integrity and custody proof data
+Integrated Workflow
+Multi-VendorDVR/NVR
+PeakLedgerForensic Core
+CyberChainTrust Layer
+Divergence& Correlation
+EVMCustody Proof
+ForensicReport
+Blockchain stores cryptographic proofs & custody events.
+Raw surveillance video remains in secure evidence storage.
+
+--- Slide 4 ---
+FEASIBILITY AND VIABILITY
+4
+@SIH Idea submission- Template
+Crypto Miners
+Technical Feasibility
+FFmpeg • C++20/CUDA • TensorRT • PyQt6 • SQLite3 WAL CAS • modular OEM adapters • local EVM (Anvil) • Linux / RTX 3050 profile <2.5 GB VRAM
+Key Challenges
+Proprietary video formats • Large evidence sets • Hardware/GPU constraints • Timestamp integrity
+IMPLEMENTED CAPABILITIES
+Multi-vendor: 5–6 OEMs supported via extensible C++20 adapters.
+Trust layer: FIDO2/WebAuthn passkeys + strict RBAC (Admin/User) + EVM session custody anchoring.
+Forensic intelligence: Layer 1 Merkle + selective NVDEC/ArcFace/OCR/HSV analysis.
+Validation: 66 automated suites passing (7/7 C++; 59/59 Python).
+Mitigations
+Vendor-specific adapter architecture
+Read-only workflow + acquisition / verification hashes
+Selective + parallel processing for large evidence sets
+Validation against known test evidence
+Validated prototype: 5–6 OEM adapters + 66/66 automated test suites passing (7 C++ + 59 Python).
+
+--- Slide 5 ---
+IMPACT AND BENEFITS
+5
+@SIH Idea submission- Template
+Crypto Miners
+CURRENT STATE
+• Fragmented tools • Keyframe gaps 
+• Mutable custody logs
+CRYPTOLEDGER • VENDOR-AGNOSTIC
+• Standardized multi-vendor acquisition & full-packet Merkle verification
+• Selective GPU audit of suspect intervals (>98% less GPU compute)
+• FIDO2 / RBAC (Strict Admin & Examiner separation) + EVM proof strengthens custody & traceability
+• >93.7% crop-storage reduction; review-ready forensic reporting
+BENEFICIARIES
+↓ TIME
+↓ GPU WORK
+↑ TRACEABILITY
+Scales: laptop GPU profile → forensic lab / server deployment
+Law enforcement • Cybercrime units • Government & critical infrastructure • Forensic labs
+
+--- Slide 6 ---
+RESEARCH  AND REFERENCES
+6
+@SIH Idea submission- Template
+Crypto Miners
+DVR / Video Forensics
+SWGDE 17-V-002-1.4 — Best Practices for Data Acquisition from Digital Video Recorders
+NIST OSAC — Forensic Science Standards Registry for Video Analysis
+Digital Forensics & Chain of Custody
+BSA 2023 Sec 63 — Bharatiya Sakshya Adhiniyam electronic admissibility
+Indian Evidence Act Sec 65B — electronic evidence certificates
+NIST SP 800-86 — Guide to Integrating Forensic Techniques into Incident Response
+Cryptography & Blockchain
+• FIDO2 / W3C WebAuthn: mobile biometric hybrid passkeys + in-memory tokens
+• EVM Smart Contract: SessionAuditLedger.sol (Solidity 0.8.20)
+• NIST FIPS 180-4: SHA-256 Merkle hashing + bitstream canonicalization
+Video Tooling
+FFmpeg documentation
+NVIDIA NVDEC & TensorRT: zero-copy GPU decoding
+ArcFace: 512-D facial embeddings
+OpenSSL EVP & POSIX SHM: high-speed IPC telemetry
+CryptoLedger integrates read-only acquisition, deterministic bitstream hashing, selective GPU forensics, zero-trust identity and EVM-backed custody. Raw surveillance video remains in secure evidence storage; blockchain stores proofs and custody events only.
+SWGDE 17-V-002-1.4 • NIST SP 800-86 • NIST FIPS 180-4 • W3C WebAuthn

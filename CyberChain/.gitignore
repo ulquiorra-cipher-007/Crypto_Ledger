@@ -1,0 +1,70 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+
+# Python virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Node / SvelteKit
+node_modules/
+.svelte-kit/
+.vite/
+dist/
+build/
+coverage/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+
+# Forensic evidence and generated artifacts
+storage/raw_evidence/
+storage/derived_artifacts/
+storage/reports/
+storage/tmp/
+
+# Fabric generated crypto / runtime material
+blockchain/organizations/
+blockchain/system-genesis-block/
+blockchain/channel-artifacts/
+blockchain/crypto-config/
+blockchain/logs/
+crypto-config/
+organizations/
+
+# Private keys / certificates / secrets
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.csr
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.temp
